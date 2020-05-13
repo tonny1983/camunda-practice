@@ -1,0 +1,29 @@
+version: 1
+dn: dc=eorionsolution,dc=com
+objectClass: domain
+objectClass: top
+dc: eorionsolution
+
+dn: ou=Users,dc=eorionsolution,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Users
+
+dn: cn=user,ou=Users,dc=eorionsolution,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+cn: user
+sn: Ldap
+uid: user
+userPassword: 12345
+
+dn: ou=Groups,dc=eorionsolution,dc=com
+objectClass: groupOfNames
+objectClass: top
+member: cn=user,ou=Users,dc=eorionsolution,dc=com
+ou: Groups
+cn: Groups
+
+

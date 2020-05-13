@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="processEngineConfiguration" class="org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+
+                <property name="jdbcUrl" value="jdbc:h2:mem:camunda;DB_CLOSE_DELAY=1000" />
+                <property name="jdbcDriver" value="org.h2.Driver" />
+                <property name="jdbcUsername" value="sa" />
+                <property name="jdbcPassword" value="" />
+
+        <!-- Database configurations -->
+        <property name="databaseSchemaUpdate" value="true" />
+
+        <!-- job executor configurations -->
+        <property name="jobExecutorActivate" value="false" />
+
+        <property name="history" value="full" />
+
+        <property name="processEnginePlugins">
+            <list>
+                <ref bean="ldapIdentityProviderPlugin" />
+            </list>
+        </property>
+
+    </bean>
+
+    <bean id="ldapIdentityProviderPlugin" class="org.camunda.bpm.identity.impl.ldap.plugin.LdapIdentityProviderPlugin">
+        <property name="serverUrl" value="ldap://localhost:33389/" />
+        <property name="managerDn" value="cn=user,ou=Users,dc=eorionsolution,dc=com" />
+        <property name="managerPassword" value="12345" />
+        <property name="baseDn" value="dc=eorionsolution,dc=com" />
+
+        <property name="userSearchBase" value="" />
+        <property name="userSearchFilter" value="(objectclass=person)" />
+        <property name="userIdAttribute" value="uid" />
+        <property name="userFirstnameAttribute" value="cn" />
+        <property name="userLastnameAttribute" value="sn" />
+        <property name="userEmailAttribute" value="mail" />
+        <property name="userPasswordAttribute" value="userPassword" />
+
+        <property name="groupSearchBase" value="" />
+        <property name="groupSearchFilter" value="(objectclass=groupOfNames)" />
+        <property name="groupIdAttribute" value="ou" />
+        <property name="groupNameAttribute" value="cn" />
+        <property name="groupMemberAttribute" value="member" />
+
+        <property name="authorizationCheckEnabled" value="false" />
+    </bean>
+
+</beans>
