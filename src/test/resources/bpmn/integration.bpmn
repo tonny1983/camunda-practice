@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_11a4x2n" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
+  <bpmn:collaboration id="Collaboration_01bb4d4">
+    <bpmn:participant id="Participant_0jou5ch" name="Business Process" processRef="business-process" />
+    <bpmn:participant id="Participant_1kdly5a" name="Integration Prcess" processRef="integration-process" />
+  </bpmn:collaboration>
+  <bpmn:process id="business-process" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_08pcbxd</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="human-work" name="Human Work">
+      <bpmn:incoming>Flow_08pcbxd</bpmn:incoming>
+      <bpmn:outgoing>Flow_15zm5fv</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:scriptTask id="before-result-task" name="Before Result Received" scriptFormat="groovy">
+      <bpmn:incoming>Flow_0toa2cb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0k1gszi</bpmn:outgoing>
+      <bpmn:script>println 'before'
+println execution.getVariable('statusCode')</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:intermediateCatchEvent id="receive-message">
+      <bpmn:incoming>Flow_0k1gszi</bpmn:incoming>
+      <bpmn:outgoing>Flow_01ca136</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1ciw2z2" messageRef="Message_138ufu2" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="send-data" name="Send Data">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="url">http://localhost:19000/data/</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="payload">
+              <camunda:script scriptFormat="groovy">def buskey = execution.processBusinessKey
+println buskey
+def result = """
+{"businesskey": "${buskey}"}
+"""
+println result
+result.toString()</camunda:script>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="statusCode">
+              <camunda:script scriptFormat="groovy">def statusCode = connector.getVariable("statusCode")
+println statusCode
+statusCode</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_15zm5fv</bpmn:incoming>
+      <bpmn:outgoing>Flow_0toa2cb</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_08pcbxd" sourceRef="StartEvent_1" targetRef="human-work" />
+    <bpmn:sequenceFlow id="Flow_15zm5fv" sourceRef="human-work" targetRef="send-data" />
+    <bpmn:sequenceFlow id="Flow_0toa2cb" sourceRef="send-data" targetRef="before-result-task" />
+    <bpmn:sequenceFlow id="Flow_0k1gszi" sourceRef="before-result-task" targetRef="receive-message" />
+    <bpmn:endEvent id="Event_0mzvlfh">
+      <bpmn:incoming>Flow_1i6xn70</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_1udbito" name="result is OK?" default="Flow_14bwagq">
+      <bpmn:incoming>Flow_01ca136</bpmn:incoming>
+      <bpmn:outgoing>Flow_1r3x89b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_14bwagq</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_01ca136" sourceRef="receive-message" targetRef="Gateway_1udbito" />
+    <bpmn:scriptTask id="ok-script-task" name="Result is OK" scriptFormat="groovy">
+      <bpmn:incoming>Flow_1r3x89b</bpmn:incoming>
+      <bpmn:outgoing>Flow_0fdz1k8</bpmn:outgoing>
+      <bpmn:script>println 'OK'</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1r3x89b" name="OK" sourceRef="Gateway_1udbito" targetRef="ok-script-task">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == "OK"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0fdz1k8" sourceRef="ok-script-task" targetRef="Gateway_0p9nasl" />
+    <bpmn:exclusiveGateway id="Gateway_0p9nasl">
+      <bpmn:incoming>Flow_0fdz1k8</bpmn:incoming>
+      <bpmn:incoming>Flow_09cuxre</bpmn:incoming>
+      <bpmn:outgoing>Flow_1i6xn70</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1i6xn70" sourceRef="Gateway_0p9nasl" targetRef="Event_0mzvlfh" />
+    <bpmn:sequenceFlow id="Flow_14bwagq" name="NG" sourceRef="Gateway_1udbito" targetRef="notok-script-task" />
+    <bpmn:sequenceFlow id="Flow_09cuxre" sourceRef="notok-script-task" targetRef="Gateway_0p9nasl" />
+    <bpmn:scriptTask id="notok-script-task" name="Result is not OK" scriptFormat="groovy">
+      <bpmn:incoming>Flow_14bwagq</bpmn:incoming>
+      <bpmn:outgoing>Flow_09cuxre</bpmn:outgoing>
+      <bpmn:script>println 'NG'</bpmn:script>
+    </bpmn:scriptTask>
+  </bpmn:process>
+  <bpmn:process id="integration-process" isExecutable="true">
+    <bpmn:serviceTask id="send-batch-data" name="Send Batch Data">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="url">http://localhost:19000/batch/</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="payload">
+              <camunda:script scriptFormat="groovy">def timestamp = new Date().getTime()
+def json = """
+{"timestamp":${timestamp}}
+"""
+json.toString()</camunda:script>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1o3l66d</bpmn:incoming>
+      <bpmn:outgoing>Flow_0qy4qsy</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="wait-result">
+      <bpmn:incoming>Flow_0qy4qsy</bpmn:incoming>
+      <bpmn:incoming>Flow_1fth9nw</bpmn:incoming>
+      <bpmn:outgoing>Flow_0qmwze1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_006xcx3">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="receive-data" name="Receive Data">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="url">http://localhost:19000/result/</camunda:inputParameter>
+            <camunda:outputParameter name="returnCode">
+              <camunda:script scriptFormat="groovy">def statusCode = connector.getVariable("statusCode")
+println statusCode
+statusCode</camunda:script>
+            </camunda:outputParameter>
+            <camunda:outputParameter name="result">
+              <camunda:script scriptFormat="groovy">connector.getVariable("response")</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0qmwze1</bpmn:incoming>
+      <bpmn:outgoing>Flow_12gqtmo</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1x04uv7" default="Flow_1fth9nw">
+      <bpmn:incoming>Flow_12gqtmo</bpmn:incoming>
+      <bpmn:outgoing>Flow_1fth9nw</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0667n7t</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:scriptTask id="send-result-message" name="Send Result Message" scriptFormat="javascript">
+      <bpmn:incoming>Flow_0667n7t</bpmn:incoming>
+      <bpmn:outgoing>Flow_1yt1dob</bpmn:outgoing>
+      <bpmn:script>var data = execution.getVariable("result");
+var system = java.lang.System;
+
+var object = JSON.parse(data);
+object.forEach( function(item) {
+system.out.println(item);
+          var msgId = Object.keys(item);
+          var result = item[msgId];
+          execution.getProcessEngineServices().getRuntimeService()
+            .createMessageCorrelation("business-msg-" + msgId)
+            .setVariable("result", result)
+            .correlateWithResult();
+});
+/*
+data.each{
+  println ${it}
+  runtimeService.createMessageCorrelation("business-msg-" + ${it}).correlateWithResult()
+}
+*/</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:endEvent id="Event_1on78fr">
+      <bpmn:incoming>Flow_1yt1dob</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Event_1b905ql">
+      <bpmn:outgoing>Flow_1o3l66d</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1apayc1">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">0 30 8 * * ?</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1yt1dob" sourceRef="send-result-message" targetRef="Event_1on78fr" />
+    <bpmn:sequenceFlow id="Flow_0667n7t" sourceRef="Gateway_1x04uv7" targetRef="send-result-message">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${returnCode == 200}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1fth9nw" sourceRef="Gateway_1x04uv7" targetRef="wait-result" />
+    <bpmn:sequenceFlow id="Flow_12gqtmo" sourceRef="receive-data" targetRef="Gateway_1x04uv7" />
+    <bpmn:sequenceFlow id="Flow_0qmwze1" sourceRef="wait-result" targetRef="receive-data" />
+    <bpmn:sequenceFlow id="Flow_0qy4qsy" sourceRef="send-batch-data" targetRef="wait-result" />
+    <bpmn:sequenceFlow id="Flow_1o3l66d" sourceRef="Event_1b905ql" targetRef="send-batch-data" />
+  </bpmn:process>
+  <bpmn:message id="Message_138ufu2" name="business-msg-${execution.processBusinessKey}" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_01bb4d4">
+      <bpmndi:BPMNShape id="Participant_0jou5ch_di" bpmnElement="Participant_0jou5ch" isHorizontal="true">
+        <dc:Bounds x="160" y="52" width="1270" height="418" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_08pcbxd_di" bpmnElement="Flow_08pcbxd">
+        <di:waypoint x="265" y="270" />
+        <di:waypoint x="320" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15zm5fv_di" bpmnElement="Flow_15zm5fv">
+        <di:waypoint x="420" y="270" />
+        <di:waypoint x="480" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0toa2cb_di" bpmnElement="Flow_0toa2cb">
+        <di:waypoint x="580" y="270" />
+        <di:waypoint x="640" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0k1gszi_di" bpmnElement="Flow_0k1gszi">
+        <di:waypoint x="740" y="270" />
+        <di:waypoint x="802" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01ca136_di" bpmnElement="Flow_01ca136">
+        <di:waypoint x="838" y="270" />
+        <di:waypoint x="905" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r3x89b_di" bpmnElement="Flow_1r3x89b">
+        <di:waypoint x="930" y="245" />
+        <di:waypoint x="930" y="150" />
+        <di:waypoint x="1060" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="937" y="195" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0fdz1k8_di" bpmnElement="Flow_0fdz1k8">
+        <di:waypoint x="1160" y="150" />
+        <di:waypoint x="1250" y="150" />
+        <di:waypoint x="1250" y="245" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1i6xn70_di" bpmnElement="Flow_1i6xn70">
+        <di:waypoint x="1275" y="270" />
+        <di:waypoint x="1312" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14bwagq_di" bpmnElement="Flow_14bwagq">
+        <di:waypoint x="930" y="295" />
+        <di:waypoint x="930" y="390" />
+        <di:waypoint x="1060" y="390" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="937" y="340" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09cuxre_di" bpmnElement="Flow_09cuxre">
+        <di:waypoint x="1160" y="390" />
+        <di:waypoint x="1250" y="390" />
+        <di:waypoint x="1250" y="295" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="229" y="252" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1nxs9sx_di" bpmnElement="human-work">
+        <dc:Bounds x="320" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1i8yzri_di" bpmnElement="before-result-task">
+        <dc:Bounds x="640" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1r0v648_di" bpmnElement="receive-message">
+        <dc:Bounds x="802" y="252" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13115jg_di" bpmnElement="send-data">
+        <dc:Bounds x="480" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0mzvlfh_di" bpmnElement="Event_0mzvlfh">
+        <dc:Bounds x="1312" y="252" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1udbito_di" bpmnElement="Gateway_1udbito" isMarkerVisible="true">
+        <dc:Bounds x="905" y="245" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="979" y="260" width="63" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0exlaxf_di" bpmnElement="ok-script-task">
+        <dc:Bounds x="1060" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0p9nasl_di" bpmnElement="Gateway_0p9nasl" isMarkerVisible="true">
+        <dc:Bounds x="1225" y="245" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1qrdf76_di" bpmnElement="notok-script-task">
+        <dc:Bounds x="1060" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1kdly5a_di" bpmnElement="Participant_1kdly5a" isHorizontal="true">
+        <dc:Bounds x="160" y="530" width="1030" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1yt1dob_di" bpmnElement="Flow_1yt1dob">
+        <di:waypoint x="950" y="655" />
+        <di:waypoint x="1022" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0667n7t_di" bpmnElement="Flow_0667n7t">
+        <di:waypoint x="785" y="655" />
+        <di:waypoint x="850" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fth9nw_di" bpmnElement="Flow_1fth9nw">
+        <di:waypoint x="760" y="630" />
+        <di:waypoint x="760" y="558" />
+        <di:waypoint x="490" y="558" />
+        <di:waypoint x="490" y="637" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12gqtmo_di" bpmnElement="Flow_12gqtmo">
+        <di:waypoint x="670" y="655" />
+        <di:waypoint x="735" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0qmwze1_di" bpmnElement="Flow_0qmwze1">
+        <di:waypoint x="508" y="655" />
+        <di:waypoint x="570" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0qy4qsy_di" bpmnElement="Flow_0qy4qsy">
+        <di:waypoint x="410" y="655" />
+        <di:waypoint x="472" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o3l66d_di" bpmnElement="Flow_1o3l66d">
+        <di:waypoint x="255" y="655" />
+        <di:waypoint x="310" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_1llas4m_di" bpmnElement="send-batch-data">
+        <dc:Bounds x="310" y="615" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1msf20g_di" bpmnElement="wait-result">
+        <dc:Bounds x="472" y="637" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1sade0i_di" bpmnElement="receive-data">
+        <dc:Bounds x="570" y="615" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1x04uv7_di" bpmnElement="Gateway_1x04uv7" isMarkerVisible="true">
+        <dc:Bounds x="735" y="630" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1smq6bc_di" bpmnElement="send-result-message">
+        <dc:Bounds x="850" y="615" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1on78fr_di" bpmnElement="Event_1on78fr">
+        <dc:Bounds x="1022" y="637" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1b905ql_di" bpmnElement="Event_1b905ql">
+        <dc:Bounds x="219" y="637" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
