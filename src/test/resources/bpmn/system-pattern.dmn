@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="Definitions_1tx6qho" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
+  <decision id="system-pattern" name="System Pattern">
+    <decisionTable id="decisionTable_1">
+      <input id="input_1" label="Pattern" camunda:inputVariable="pattern">
+        <inputExpression id="inputExpression_1" typeRef="integer">
+          <text></text>
+        </inputExpression>
+      </input>
+      <output id="output_1" label="System1" name="system1" typeRef="boolean" />
+      <output id="OutputClause_0f6n7w1" label="System2" name="system2" typeRef="boolean" />
+      <output id="OutputClause_0d4jn1g" label="System3" name="system3" typeRef="boolean" />
+      <rule id="DecisionRule_07aro50">
+        <description>system1</description>
+        <inputEntry id="UnaryTests_1o1wgzx">
+          <text>1</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0p7qrdk">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_140gjcd">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0hwqozk">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_08sr5xv">
+        <description>system1 &amp; 2</description>
+        <inputEntry id="UnaryTests_1ajdjkf">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_15c6yq3">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_09rzbih">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0hzrwpr">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_19g3ehm">
+        <description>system1 &amp; 2 &amp; 3</description>
+        <inputEntry id="UnaryTests_1s33nw0">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0hge2ef">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_16bm6l8">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_06ojqfh">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_09gjum7">
+        <description>system2</description>
+        <inputEntry id="UnaryTests_0aza3ci">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1imbx6d">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0570jo1">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0i71lx8">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0go3hpu">
+        <description>system2 &amp; 3</description>
+        <inputEntry id="UnaryTests_0yj5knh">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1egl9zw">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1kyc4q3">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1v41t2q">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0fu3zon">
+        <description>system3</description>
+        <inputEntry id="UnaryTests_1mftxom">
+          <text>6</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_112z5ek">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1iorja3">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_11lg2ue">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_18ckq9p">
+        <description>system1 &amp; 3</description>
+        <inputEntry id="UnaryTests_1q9hjhk">
+          <text>7</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0xt3hc9">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1vi8zba">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1qd7zeg">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>
