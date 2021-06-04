@@ -19,7 +19,7 @@
         <assertj.version>3.13.2</assertj.version>
         <camel.version>3.4.0</camel.version>
         <mockserver.version>5.10.0</mockserver.version>
-        <httpclient.version>4.5.12</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <lombok.version>1.18.12</lombok.version>
     </properties>
 
